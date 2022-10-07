@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Streamish.Repositories;
 using Streamish.Models;
 using System.Data.Odbc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Streamish.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class VideoController : ControllerBase

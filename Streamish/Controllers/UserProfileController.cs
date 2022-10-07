@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using Streamish.Models;
 using Streamish.Repositories;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Streamish.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UserProfileController : ControllerBase
@@ -33,12 +35,17 @@ namespace Streamish.Controllers
             return Ok(userProfile);
         }
 
-        [HttpPost]
-        public IActionResult Post(UserProfile userProfile)
+        [HttpGet("{firebaseUserId}")]
+        public IActionResult GetByFirebaseUserId(string firebaseUserId)
         {
-            _userProfileRepository.Add(userProfile);
-            return CreatedAtAction("Get", new { id = userProfile.Id }, userProfile);
+            var userProfile = _userProfileRepository.GetByFirebaseUserId(firebaseUserId);
+            if (userProfile == null)
+            {
+                return NotFound();
+            }
+            return Ok(userProfile);
         }
+
 
         [HttpPut("{id}")]
         public IActionResult Put(int id, UserProfile userProfile)
@@ -70,5 +77,24 @@ namespace Streamish.Controllers
             return Ok(userProfile);
         }
 
+        [HttpGet("DoesUserExist/{firebaseUserId}")]
+        public IActionResult DoesUserExist(string firebaseUserId)
+        {
+            var userProfile = _userProfileRepository.GetByFirebaseUserId(firebaseUserId);
+            if (userProfile == null)
+            {
+                return NotFound();
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult Register(UserProfile userProfile)
+        {
+            // All newly registered users start out as a "user" user type (i.e. they are not admins)
+            _userProfileRepository.Add(userProfile);
+            return CreatedAtAction(
+                nameof(GetByFirebaseUserId), new { firebaseUserId = userProfile.FirebaseUserId }, userProfile);
+        }
     }
 }
